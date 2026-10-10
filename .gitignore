@@ -1,0 +1,7 @@
+# 运行期数据（会话历史 / 通知库 / cookies / 缓存）——绝不入库
+data/
+data.*/
+**/__pycache__/
+*.py[cod]
+tests/.test-tmp/
+tests/backups/
