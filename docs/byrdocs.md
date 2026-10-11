@@ -1,16 +1,30 @@
 # byrdocs 插件使用说明
 
-> 插件目录：`plugins/byrdocs/` · 配置段：`config.json → plugins.byrdocs`
-> 上游：[byrdocs.org](https://byrdocs.org)（BYR Docs，北邮资料分享平台）· 自检：`venv-arm/bin/python -B tests/test_byrdocs.py`
+> 插件目录：[plugins/byrdocs/](../plugins/byrdocs/) · 配置段：[config.json](../config.json) → `plugins.byrdocs`
+> 上游：[byrdocs.org](https://byrdocs.org)（BYR Docs，北邮资料分享平台）
+> 自检：[tests/test_byrdocs.py](../tests/test_byrdocs.py)（`venv-arm/bin/python -B tests/test_byrdocs.py`）
+>
+> 文档索引：[docs/README.md](README.md)
 
 在 QQ 里检索 BYR Docs 的资料（教材 / 资料 / 试题），按编号取回**文件**，并管理
 「哪些群、哪些人能用」的白名单。
+
+## 目录
+
+1. [命令一览](#一命令一览)
+    - [1.1 实际长什么样](#11-实际长什么样)
+    - [1.2 几个设计点](#12-几个设计点)
+2. [配置](#二配置)
+3. [下载为什么要登录（以及凭据去哪了）](#三下载为什么要登录以及凭据去哪了)
+4. [白名单（谁能用）](#四白名单谁能用)
+5. [故障排查](#五故障排查)
+6. [代码结构](#六代码结构)
 
 ---
 
 ## 一、命令一览
 
-前缀取自 `config.json` 的 `command_prefixes`（默认 `/` 和 `#`）。群里需要先 @机器人。
+前缀取自 [config.json](../config.json) 的 `command_prefixes`（默认 `/` 和 `#`）。群里需要先 @机器人。
 
 | 命令 | 说明 | 权限 |
 |------|------|------|
@@ -29,7 +43,7 @@
 
 `/help byrdocs`、`/help byrdocs search` 有同一份帮助（由框架按 Schema 渲染）。
 
-### 实际长什么样
+### 1.1 实际长什么样
 
 ```
 > /byrdocs search 数据结构 期末 --type=test
@@ -54,7 +68,7 @@
 （随后收到一个 PDF 文件）
 ```
 
-### 几个设计点
+### 1.2 几个设计点
 
 * **编号跨页稳定**：byrdocs 搜索接口没有 offset，一次最多 100 条。插件一次取回
   全部结果并编号 `1..N`，`next` 只是切窗口 —— 所以第 2 页的 `6 号` 永远指向同一份
@@ -189,7 +203,9 @@ GET  https://byrdocs.org/files/<md5>.<ext>     Authorization: Bearer <token>
 | `🔍 还没有搜索记录` | 直接发了 `next` / `get`：先 `/byrdocs search <关键词>` |
 | 想看状态 | 超级用户私聊 `/byrdocs status`（登录、出口 IP、白名单、缓存） |
 
-日志前缀统一是 `[byrdocs]`。自检脚本：
+日志前缀统一是 `[byrdocs]`。自检脚本
+[`tests/test_byrdocs.py`](../tests/test_byrdocs.py) 与
+[`tests/diagnostics/probe_byrdocs_upload.py`](../tests/diagnostics/probe_byrdocs_upload.py)：
 
 ```bash
 cd /ncqqpy
@@ -204,10 +220,10 @@ venv-arm/bin/python -B tests/diagnostics/probe_byrdocs_upload.py           # 真
 
 | 文件 | 职责 |
 |------|------|
-| `main.py` | 插件本体：命令注册、白名单闸门、渲染、取文件与发送 |
-| `byrdocs_api.py` | 上游 HTTP：搜索 API、账号登录、流式下载（含 `TooLarge`/`AuthRequired` 语义） |
-| `store.py` | 本地状态：搜索会话（编号 ↔ 资源）、下载登记与 LRU 淘汰 |
-| `schemas.py` | 命令参数 Schema 与目标（群/用户）解析 |
-| `data/` | 运行时状态：`state.json` + `downloads/`（可整目录删除，只是缓存） |
+| [main.py](../plugins/byrdocs/main.py) | 插件本体：命令注册、白名单闸门、渲染、取文件与发送 |
+| [byrdocs_api.py](../plugins/byrdocs/byrdocs_api.py) | 上游 HTTP：搜索 API、账号登录、流式下载（含 `TooLarge`/`AuthRequired` 语义） |
+| [store.py](../plugins/byrdocs/store.py) | 本地状态：搜索会话（编号 ↔ 资源）、下载登记与 LRU 淘汰 |
+| [schemas.py](../plugins/byrdocs/schemas.py) | 命令参数 Schema 与目标（群/用户）解析 |
+| [data/](../plugins/byrdocs/data/) | 运行时状态：`state.json` + `downloads/`（可整目录删除，只是缓存） |
 
 上游接口文档：<https://byrdocs.org/llms.txt>、<https://search.byrdocs.org/llms.txt>。
