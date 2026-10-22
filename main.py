@@ -428,14 +428,10 @@ class ByrdocsPlugin(PluginBase):
 
         @reg("byrdocs", permission="", scope="all", description="BYR Docs 资料检索与下载")
         async def cmd_root(packet):
-            handler = self.cmds.list_commands().get("byrdocs")
-            if handler is None:                     # 理论上不可达
-                return "📚 BYR Docs：子命令清单不可用，见日志"
-            text = "📚 " + handler.help_text
-            event = getattr(packet, "event", None)
-            if event is not None and event.message_type == "group":
-                text += "\n\n" + GROUP_AT_HINT
-            return text
+            # ⚠️ 命令组本体**不会被执行**：框架在路由前就把裸调（`/byrdocs`）
+            # 重定向到 `/help byrdocs`（本体描述 + 你有权使用的子命令 + 群里的
+            # @机器人 提示）。所以这里不写逻辑 —— 写了也不会运行。
+            return None
 
         # ---- 权限矩阵（改这里之前先看 docs/byrdocs.md 的「权限」一节）----
         #   公开（群聊 + 私聊 + 小窗，仍受服务范围白名单约束）：search / next / get
@@ -829,8 +825,8 @@ class ByrdocsPlugin(PluginBase):
         if spec:
             parsed = parse_target_ctx(spec, is_group=getattr(event, "message_type", "") == "group")
             if parsed is None:
-                return ("⚠️ 目标格式不对\n"
-                        "💡 用法：/byrdocs targets group <群号> 或 /byrdocs targets user <QQ号>")
+                return ("_schema_error",
+                        "目标格式不对（应写成 group <群号> 或 user <QQ号>）")
             kind, target = parsed
             pool = self._bound_groups() if kind == "group" else self._bound_users()
             mark = "✅ 在白名单里" if target in pool else "❌ 不在白名单里"
@@ -862,14 +858,13 @@ class ByrdocsPlugin(PluginBase):
         spec = join_spec(getattr(params, "spec", ""))
         if not spec:
             # 可变参数不参与框架的 required 校验（`[spec ...]` 在帮助里就是可选的），
-            # 所以缺参数要在这里说清楚 —— 「格式不对」会让人以为是自己写错了。
-            return ("⚠️ 没给目标\n"
-                    "💡 用法：/byrdocs add group <群号> 或 /byrdocs add user <QQ号>")
+            # 所以缺参数在这里拦。**不要手写用法行**（会与 Schema 漂移）：
+            # 返回 `_schema_error` 让框架回「⚠️ 用法不正确 + /help byrdocs.add」。
+            return ("_schema_error", "没给目标（应写成 group <群号> 或 user <QQ号>）")
         parsed = parse_target_ctx(spec,
                                   is_group=getattr(event, "message_type", "") == "group")
         if parsed is None:
-            return ("⚠️ 目标格式不对\n"
-                    "💡 用法：/byrdocs add group <群号> 或 /byrdocs add user <QQ号>")
+            return ("_schema_error", "目标格式不对（应写成 group <群号> 或 user <QQ号>）")
         kind, target = parsed
         return self._mutate_binding(kind, target, add=True)
 
@@ -877,13 +872,11 @@ class ByrdocsPlugin(PluginBase):
         # 资格由框架校验（同上）
         spec = join_spec(getattr(params, "spec", ""))
         if not spec:
-            return ("⚠️ 没给目标\n"
-                    "💡 用法：/byrdocs del group <群号> 或 /byrdocs del user <QQ号>")
+            return ("_schema_error", "没给目标（应写成 group <群号> 或 user <QQ号>）")
         parsed = parse_target_ctx(spec,
                                   is_group=getattr(event, "message_type", "") == "group")
         if parsed is None:
-            return ("⚠️ 目标格式不对\n"
-                    "💡 用法：/byrdocs del group <群号> 或 /byrdocs del user <QQ号>")
+            return ("_schema_error", "目标格式不对（应写成 group <群号> 或 user <QQ号>）")
         kind, target = parsed
         return self._mutate_binding(kind, target, add=False)
 

@@ -564,8 +564,11 @@ async def main(online: bool) -> int:
     res_add2 = await send(cmds, stub, ev(f"/byrdocs add group {GROUP_OTHER}", user=SUPERUSER))
     check("重复添加给出「已在」提示", "已经在白名单里" in flat(res_add2), flat(res_add2)[:120])
     res_nospec = await send(cmds, stub, ev("/byrdocs add", user=SUPERUSER))
-    check("add 不带目标：明确提示「没给目标」而非「格式不对」",
-          "没给目标" in flat(res_nospec), flat(res_nospec)[:120])
+    # 用法不足现在由**框架**统一回「⚠️ 用法不正确 + 该子命令帮助页」，
+    # 插件不再手写用法行（见 plugin-dev §4.3.1 / 命令组帮助重定向规范）
+    check("add 不带目标：框架回用法不正确 + 该子命令帮助页",
+          "用法不正确" in flat(res_nospec) and "📖 /byrdocs add" in flat(res_nospec),
+          flat(res_nospec)[:160])
 
     res_add_user = await send(cmds, stub, ev(f"/byrdocs add user {BOUND_USER}", user=SUPERUSER))
     check("superuser 私聊加用户成功", "已加入白名单" in flat(res_add_user),
