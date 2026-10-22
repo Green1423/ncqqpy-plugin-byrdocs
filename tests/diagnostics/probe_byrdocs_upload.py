@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from napcat import NapCatClient                                     # noqa: E402
+from napcat.client import NapCatClient
 from plugins.byrdocs.byrdocs_api import (                           # noqa: E402
     ByrdocsClient, filename_of, format_size, guess_ext,
 )
@@ -81,7 +81,7 @@ async def main() -> int:
         except Exception as e:  # noqa: BLE001
             print(f"    ✗ upload_private_file 失败：{type(e).__name__}: {e}")
             print("    退回 file 消息段再试 …")
-            from napcat import MessageChain
+            from napcat.message import MessageChain
             await napcat.api.send_private_msg(
                 user_id=target, message=MessageChain().file(str(dest), name=name))
             print("    ✓ file 消息段已发送")

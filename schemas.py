@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from napcat import CommandSchema, IntField, StrField, VariadicField
+from napcat.command import CommandSchema, IntField, StrField, VariadicField
 
 
 class SearchSchema(CommandSchema):

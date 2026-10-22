@@ -45,8 +45,10 @@ if not (PLUGIN_DIR / "__init__.py").exists() and (ROOT / "__init__.py").exists()
     PLUGIN_DIR = PLUGIN_ROOT_DIR / PLUGIN_NAME
 PLUGIN_PKG = f"plugins.{PLUGIN_NAME}"
 
-from napcat import (ConfigManager, GroupBinding, MessageChain,          # noqa: E402
-                    MessageEvent)
+from napcat.config import ConfigManager
+from napcat.client import GroupBinding
+from napcat.message import MessageChain
+from napcat.models import MessageEvent
 from napcat.client import NapCatClient                                 # noqa: E402
 from napcat.command import CommandManager                              # noqa: E402
 from napcat.events import EventBus, TimerManager                       # noqa: E402

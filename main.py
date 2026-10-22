@@ -73,7 +73,9 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from napcat import GROUP_AT_HINT, MessageChain, PluginBase
+from napcat.command import GROUP_AT_HINT
+from napcat.message import MessageChain
+from napcat.plugin import PluginBase
 
 from .byrdocs_api import (
     AuthFailed,
@@ -910,7 +912,8 @@ class ByrdocsPlugin(PluginBase):
         await self.refresh_campus_state()
         stats = self._store.stats()
         try:
-            from napcat import __version__ as fw_version     # noqa: PLC0415
+            import napcat as _napcat
+            fw_version = _napcat.__version__
         except Exception:  # noqa: BLE001
             fw_version = "?"
         age = client.token_age()
