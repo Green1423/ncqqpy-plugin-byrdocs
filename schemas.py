@@ -1,6 +1,6 @@
 """byrdocs 命令参数 Schema。
 
-约定与框架一致（见 docs/plugin-dev.md 4.3.1）：用法行**不手写**，由 Schema 生成；
+约定与框架一致（见 docs/plugin-dev/04-commands.md §4.3.1）：用法行**不手写**，由 Schema 生成；
 帮助里的占位符由框架的 `build_usage()` / `PLACEHOLDER_LEGEND` 统一渲染。
 """
 from __future__ import annotations

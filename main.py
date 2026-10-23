@@ -433,7 +433,7 @@ class ByrdocsPlugin(PluginBase):
             # @机器人 提示）。所以这里不写逻辑 —— 写了也不会运行。
             return None
 
-        # ---- 权限矩阵（改这里之前先看 docs/byrdocs.md 的「权限」一节）----
+        # ---- 权限矩阵（改这里之前先看 docs/plugins/byrdocs/04-allowlist.md）----
         #   公开（群聊 + 私聊 + 小窗，仍受服务范围白名单约束）：search / next / get
         #   仅私聊 + 仅超级用户：targets / add / del / status
         # 声明在**每条子命令自己身上**：框架在路由到子命令前按其声明校验

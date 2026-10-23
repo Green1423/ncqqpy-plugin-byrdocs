@@ -48,7 +48,7 @@ git clone https://github.com/Green1423/ncqqpy-plugin-byrdocs plugins/byrdocs
 | `BYRDOCS_TOKEN / BYRDOCS_USERNAME / BYRDOCS_PASSWORD` | 资料库凭据（也可写在 `config.json → plugins.byrdocs.*`；环境变量优先） |
 
 
-详细文档：[`docs/byrdocs.md`](docs/byrdocs.md)。
+详细文档：[`docs/byrdocs/README.md`](docs/byrdocs/README.md)。
 ## 测试
 
 ```bash
