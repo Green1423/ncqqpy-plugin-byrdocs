@@ -5,7 +5,7 @@
 
 byrdocs 的文件下载要求**校园网 IP** 或**登录令牌**。插件按官方 CLI 的流程自动登录：
 
-```
+```text
 POST https://byrdocs.org/api/auth/login        → {tokenURL, loginURL}
 POST https://byrdocs.org/api/auth/bupt_login   → {token}     ← 账号密码在这里
 GET  https://byrdocs.org/files/<md5>.<ext>     Authorization: Bearer <token>
