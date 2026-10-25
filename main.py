@@ -180,7 +180,12 @@ class ByrdocsPlugin(PluginBase):
         # 技能通道是框架新加的（`napcat.skills`），**框架代码要重启进程**才生效；
         # 热重载只换插件代码。这时不能崩 —— 命令是主功能，技能没有就只是没有。
         if hasattr(self, "register_skill"):
-            self._register_skills()
+            try:
+                self._register_skills()
+            except Exception as e:  # noqa: BLE001 - 技能失败不该影响插件启用
+                # 典型：进程里还是旧框架（`register_skill` 签名不同）——
+                # 技能没挂上而已，命令照旧可用；重启进程后生效
+                self.logger.warning("[byrdocs] 注册技能失败：%s", e)
         else:
             self.logger.warning(
                 "[byrdocs] 当前进程里的框架没有 register_skill：技能暂不注册"
@@ -385,80 +390,13 @@ class ByrdocsPlugin(PluginBase):
 
     # ------------------------------------------------------------------ 技能（给 AI 用）
     def _register_skills(self) -> None:
-        """把「搜资料」交给 `ai_chat` 的技能通道（见 `napcat.skills`）。
+        """把「搜资料」这条**命令**挂给 ai_chat 的技能通道（见 `napcat.skills`）。
 
-        为什么值得注册：群里有人问「有没有线代的真题」，AI 光凭知识答不了 ——
-        它需要**这个插件的数据源**。注册成技能后模型能直接检索，不用用户先
-        敲 `/byrdocs search` 再让 AI 读结果。
-
-        只提供**只读**能力（搜索 / 看详情）：下载、白名单这些有副作用或涉及权限，
-        继续留给命令，不做成技能。
+        技能 = 命令映射：参数 schema 与说明都从 `/byrdocs search` 自己取，
+        触发时走 `CommandManager.handle()` —— 权限、作用域、白名单与用户手敲
+        完全一致（下载/白名单这些仍有副作用的动作只留在命令里，不做成技能）。
         """
-        @self.register_skill(
-            "search",
-            description=("在 BYR Docs 资料库里搜索（北邮往年试卷/教材/资料）。"
-                         "用户问「有没有某某课的资料/真题/课件」时用它。"
-                         "返回若干条：编号、标题、类型、大小、内容标签。"),
-            parameters={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string",
-                              "description": "搜索关键词，如「线性代数」「数据结构 期末」"},
-                    "type": {"type": "string",
-                             "enum": ["all", "book", "exam", "doc"],
-                             "description": "资料类型，默认 all"},
-                    "limit": {"type": "integer",
-                              "description": "最多返回几条，默认 8、上限 20"},
-                },
-                "required": ["query"],
-            },
-        )
-        async def _skill_search(args: dict, ctx):
-            query = str(args.get("query") or "").strip()
-            if not query:
-                return "没有给搜索关键词"
-            rtype = self._normalize_type(str(args.get("type") or "all"))
-            try:
-                limit = max(1, min(int(args.get("limit") or 8), 20))
-            except (TypeError, ValueError):
-                limit = 8
-            # 技能没有 event，拿不到「这一轮是谁在问」—— 用 ctx 里的身份做白名单判定，
-            # 与命令那条路保持同一套规则（`_allowed` 见下）
-            if not self._skill_allowed(ctx):
-                return "这个资料库没有对当前用户/群开放（需要管理员配置白名单）"
-            client = self._ensure_client()
-            try:
-                result = await client.search(query, rtype, limit=limit)
-            except ByrdocsError as e:
-                raise RuntimeError(f"检索失败：{e}") from e
-            if not result.items:
-                return f"没有搜到「{query}」（类型 {rtype}）"
-            lines = [f"共 {result.total} 条结果，列出前 {min(limit, len(result.items))} 条："]
-            for i, item in enumerate(result.items[:limit], 1):
-                data = item.plain() if hasattr(item, "plain") else {}
-                title = str(data.get("title") or data.get("id") or "（无标题）")
-                extra = " · ".join(str(x) for x in (
-                    (guess_ext(data) or "").upper(),
-                    format_size(data.get("filesize")),
-                    " / ".join(str(x) for x in (data.get("content") or [])[:2]),
-                ) if x)
-                lines.append(f"{i}. {title}" + (f"（{extra}）" if extra else ""))
-            lines.append("要下载请让用户发 /byrdocs search <关键词> 再用 /byrdocs get <编号>。")
-            return "\n".join(lines)
-
-    def _skill_allowed(self, ctx) -> bool:
-        """技能调用也要过白名单 —— 绕开命令不等于绕开服务范围。
-
-        没有 `event` 可用，所以按 `check_access` 的**同一套判据**在这里重算：
-        群聊看群号、私聊看 QQ 号，超级用户豁免。
-        """
-        uid = int(getattr(ctx, "user_id", 0) or 0)
-        gid = int(getattr(ctx, "group_id", 0) or 0)
-        if uid and self.perm.is_superuser(uid):
-            return True
-        if getattr(ctx, "is_group", False):
-            return gid in self._bound_groups()
-        return uid in self._bound_users()
+        self.register_skill("search", command="byrdocs.search")
 
     def _register_commands(self) -> None:
         self._command_names = []
