@@ -816,13 +816,10 @@ class ByrdocsPlugin(PluginBase):
                 await self.api.upload_group_file(
                     group_id=str(event.group_id), file=path, name=upload_name)
                 return True
-            # NapCat 的 go-cqhttp 兼容 action（框架 ApiClient 未封装，直接 _call）。
-            # 源码：NapCatQQ/packages/napcat-onebot/action/go-cqhttp/UploadPrivateFile.ts
-            # —— `user_id` / `file` / `name` / `upload_file`（默认 true）；
-            # 好友走 C2C、非好友走 TEMPC2CFROMGROUP（群小窗正是这条），无需我们分叉。
-            await self.api._call("upload_private_file", {
-                "user_id": str(event.user_id), "file": path, "name": upload_name,
-                "upload_file": True})
+            # 好友走 C2C、非好友走 TEMPC2CFROMGROUP（群小窗正是这条）——
+            # 用框架封装的 `upload_private_file` 即可，无需自己分叉。
+            await self.api.upload_private_file(
+                user_id=str(event.user_id), file=path, name=upload_name)
             return True
         except Exception as e:  # noqa: BLE001 - 换一条路径再试
             self.logger.warning("[byrdocs] 上传文件失败（改用文件消息段）：%s", e)

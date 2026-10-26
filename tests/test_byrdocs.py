@@ -149,6 +149,13 @@ class FakeApi:
                              "file": file, "name": name})
         return {"file_id": "f1"}
 
+    async def upload_private_file(self, user_id, file, name, upload_file=True):
+        if self.fail_upload:
+            raise RuntimeError("模拟上传失败")
+        self.uploads.append({"kind": "private", "user_id": str(user_id),
+                             "file": file, "name": name})
+        return {"file_id": "f2"}
+
     async def _call(self, action, params=None):
         self.actions.append((action, dict(params or {})))
         if action == "upload_private_file":
