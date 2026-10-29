@@ -73,7 +73,6 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from napcat.command import GROUP_AT_HINT
 from napcat.message import MessageChain
 from napcat.plugin import PluginBase
 
@@ -100,6 +99,8 @@ from .schemas import (
     parse_target_ctx,
 )
 from .store import MAX_RESULTS, ResultStore
+
+from napcat.scope import Scope, parse_ids
 
 DEFAULT_PAGE_SIZE = 5
 DEFAULT_MAX_FILE_MB = 300
@@ -281,39 +282,23 @@ class ByrdocsPlugin(PluginBase):
 
     @staticmethod
     def _to_ids(value) -> set[int]:
-        """配置里的「号列表」→ 正整数集合（`bool` 会被 `int()` 收成 1，丢弃）。"""
-        if not isinstance(value, (list, tuple, set)):
-            return set()
-        out: set[int] = set()
-        for entry in value:
-            if isinstance(entry, bool):
-                continue
-            try:
-                num = int(entry)
-            except (TypeError, ValueError):
-                continue
-            if num > 0:
-                out.add(num)
-        return out
+        """配置里的「号列表」→ 正整数集合（解析口径见 `napcat.scope.parse_ids`）。"""
+        return parse_ids(value)
 
     def _binding(self) -> dict:
         value = self.config.get("binding")
         return value if isinstance(value, dict) else {}
 
-    def _bound_groups(self) -> set[int]:
-        """允许使用本插件的群号 —— **全部来自本插件自己的配置**。
+    def _scope(self) -> Scope:
+        """服务范围（口径见 `napcat.scope`）：只看本插件 `binding`，空 = 谁都不用。"""
+        return Scope.of(self._binding())
 
-        ⚠️ 这里**故意不**回落到框架的 `bound_groups`。两者回答的是不同问题：
-        框架那份是「机器人监听哪些群」（为空 = 监听所有群），本插件这份是
-        「哪些群允许用 byrdocs」（为空 = **一个都不允许**）——语义正好相反，
-        拿监听列表兜底等于「机器人进了多少群，这个插件就在多少群里可用」，
-        与「白名单模式」自相矛盾。没显式配置就是没有：要用哪个群，就
-        `/byrdocs add group <群号>` 显式加进来。
-        """
-        return self._to_ids(self._binding().get("groups"))
+    def _bound_groups(self) -> set[int]:
+        """允许使用本插件的群号（= `binding.groups`；空 = 一个都不许）。"""
+        return set(self._scope().groups)
 
     def _bound_users(self) -> set[int]:
-        return self._to_ids(self._binding().get("users"))
+        return set(self._scope().users)
 
     def check_access(self, event) -> bool:
         """这条消息的调用者是否在本插件的服务范围内（与权限等级无关）。
@@ -335,15 +320,8 @@ class ByrdocsPlugin(PluginBase):
             return False
         if self.perm.is_superuser(user_id):
             return True                      # 豁免：防止白名单把自己锁在外面
-        if getattr(event, "message_type", "") != "private":
-            source = self._to_ids([getattr(event, "group_id", None)])
-            return bool(source) and source <= self._bound_groups()
-        if getattr(event, "is_temp_session", False):
-            # 用 `_to_ids` 而不是 `int(...)`：字段缺失/写成非数字时不该抛异常
-            # （注意 `set() <= 白名单` 恒为真，所以不能拿空集合去比）
-            source = self._to_ids([getattr(event, "group_id", None)])
-            return bool(source) and source <= self._bound_groups()
-        return user_id in self._bound_users()
+        # 群聊 / 群小窗按来源群、直接私聊按用户（统一口径见 `napcat.scope`）
+        return self._scope().event_ok(event)
 
     _SCOPE_LOG_INTERVAL = 60.0
 
@@ -874,6 +852,13 @@ class ByrdocsPlugin(PluginBase):
         return "\n".join(lines) + me
 
     async def _cmd_add(self, params, event):
+        return self._cmd_binding(params, event, add=True)
+
+    async def _cmd_del(self, params, event):
+        return self._cmd_binding(params, event, add=False)
+
+    def _cmd_binding(self, params, event, *, add: bool):
+        """`add` / `del` 共用：解析目标 → 改白名单（两个命令只有方向不同）。"""
         # 资格由框架按 `permission="superuser"` + `scope="private"` 校验（见注册处）
         spec = join_spec(getattr(params, "spec", ""))
         if not spec:
@@ -886,19 +871,7 @@ class ByrdocsPlugin(PluginBase):
         if parsed is None:
             return ("_schema_error", "目标格式不对（应写成 group <群号> 或 user <QQ号>）")
         kind, target = parsed
-        return self._mutate_binding(kind, target, add=True)
-
-    async def _cmd_del(self, params, event):
-        # 资格由框架校验（同上）
-        spec = join_spec(getattr(params, "spec", ""))
-        if not spec:
-            return ("_schema_error", "没给目标（应写成 group <群号> 或 user <QQ号>）")
-        parsed = parse_target_ctx(spec,
-                                  is_group=getattr(event, "message_type", "") == "group")
-        if parsed is None:
-            return ("_schema_error", "目标格式不对（应写成 group <群号> 或 user <QQ号>）")
-        kind, target = parsed
-        return self._mutate_binding(kind, target, add=False)
+        return self._mutate_binding(kind, target, add=add)
 
     def _mutate_binding(self, kind: str, target: int, *, add: bool) -> str:
         key = "groups" if kind == "group" else "users"

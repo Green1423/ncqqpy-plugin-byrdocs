@@ -16,8 +16,11 @@ from __future__ import annotations
 
 import json
 import os
+
 import time
-from typing import Any, Optional
+from typing import Optional
+
+from napcat.persist import write_json
 
 STATE_VERSION = 1
 
@@ -86,14 +89,8 @@ class ResultStore:
             self._data["updatedAt"] = raw["updatedAt"]
 
     def save(self) -> None:
-        d = os.path.dirname(self.state_path)
-        if d:
-            os.makedirs(d, exist_ok=True)
         self._data["updatedAt"] = _now()
-        tmp = self.state_path + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(self._data, f, ensure_ascii=False, separators=(",", ":"))
-        os.replace(tmp, self.state_path)
+        write_json(self.state_path, self._data)
 
     @property
     def download_dir_ready(self) -> str:
