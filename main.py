@@ -117,8 +117,6 @@ TYPE_ALIAS = {
     "test": "test", "试题": "test", "试卷": "test", "真题": "test",
     "all": "all", "全部": "all", "所有": "all",
 }
-CONTENT_LABEL = {"原题": "原题", "答案": "答案", "题库": "题库",
-                 "知识点": "知识点", "课件": "课件", "思维导图": "思维导图"}
 
 
 def _disp_width(text: str) -> int:
@@ -967,6 +965,3 @@ class ByrdocsPlugin(PluginBase):
         type(self)._campus_checked_at = time.time()
 
 
-def _load_plugin():
-    """供 `PluginManager` 之外的自检脚本使用（框架自己按类名发现插件）。"""
-    return ByrdocsPlugin

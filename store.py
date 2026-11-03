@@ -160,9 +160,6 @@ class ResultStore:
         search = (node.get("searches") or {}).get(sid)
         return search if isinstance(search, dict) else None
 
-    def current_id(self, chat: tuple) -> Optional[str]:
-        node = self._chat(chat)
-        return (node or {}).get("last")
 
     def set_page(self, chat: tuple, page: int) -> Optional[dict]:
         """更新当前搜索的页码（`next` 用），返回更新后的搜索。"""
