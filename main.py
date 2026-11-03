@@ -100,7 +100,7 @@ from .schemas import (
 )
 from .store import MAX_RESULTS, ResultStore
 
-from napcat.scope import Scope, parse_ids
+from napcat.subscribe import Subscription, parse_ids
 
 DEFAULT_PAGE_SIZE = 5
 DEFAULT_MAX_FILE_MB = 300
@@ -280,23 +280,23 @@ class ByrdocsPlugin(PluginBase):
 
     @staticmethod
     def _to_ids(value) -> set[int]:
-        """配置里的「号列表」→ 正整数集合（解析口径见 `napcat.scope.parse_ids`）。"""
+        """配置里的「号列表」→ 正整数集合（解析口径见 `napcat.subscribe.parse_ids`）。"""
         return parse_ids(value)
 
     def _binding(self) -> dict:
         value = self.config.get("binding")
         return value if isinstance(value, dict) else {}
 
-    def _scope(self) -> Scope:
-        """服务范围（口径见 `napcat.scope`）：只看本插件 `binding`，空 = 谁都不用。"""
-        return Scope.of(self._binding())
+    def _subscription(self) -> Subscription:
+        """服务范围（口径见 `napcat.subscribe`）：只看本插件 `binding`，空 = 谁都不用。"""
+        return Subscription.of(self._binding())
 
     def _bound_groups(self) -> set[int]:
         """允许使用本插件的群号（= `binding.groups`；空 = 一个都不许）。"""
-        return set(self._scope().groups)
+        return set(self._subscription().groups)
 
     def _bound_users(self) -> set[int]:
-        return set(self._scope().users)
+        return set(self._subscription().users)
 
     def check_access(self, event) -> bool:
         """这条消息的调用者是否在本插件的服务范围内（与权限等级无关）。
@@ -318,8 +318,8 @@ class ByrdocsPlugin(PluginBase):
             return False
         if self.perm.is_superuser(user_id):
             return True                      # 豁免：防止白名单把自己锁在外面
-        # 群聊 / 群小窗按来源群、直接私聊按用户（统一口径见 `napcat.scope`）
-        return self._scope().event_ok(event)
+        # 群聊 / 群小窗按来源群、直接私聊按用户（统一口径见 `napcat.subscribe`）
+        return self._subscription().event_ok(event)
 
     _SCOPE_LOG_INTERVAL = 60.0
 
