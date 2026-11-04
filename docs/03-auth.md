@@ -1,6 +1,6 @@
 # 三、下载为什么要登录（以及凭据去哪了）
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[配置](02-config.md) · 下一章：[白名单（谁能用）](04-allowlist.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[配置](02-config.md) · 下一章：[白名单（谁能用）](04-allowlist.md)
 
 
 byrdocs 的文件下载要求**校园网 IP** 或**登录令牌**。插件按官方 CLI 的流程自动登录：

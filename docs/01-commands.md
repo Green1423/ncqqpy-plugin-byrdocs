@@ -1,6 +1,6 @@
 # 一、命令一览
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 下一章：[配置](02-config.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 下一章：[配置](02-config.md)
 
 
 前缀取自 (../../../config.json) 的 `command_prefixes`（默认 `/` 和 `#`）。群里需要先 @机器人。

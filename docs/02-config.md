@@ -1,6 +1,6 @@
 # 二、配置
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[命令一览](01-commands.md) · 下一章：[下载为什么要登录（以及凭据去哪了）](03-auth.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[命令一览](01-commands.md) · 下一章：[下载为什么要登录（以及凭据去哪了）](03-auth.md)
 
 
 `plugins.byrdocs`（插件首次加载会自动补齐缺失的键，**不会覆盖已有值**）：

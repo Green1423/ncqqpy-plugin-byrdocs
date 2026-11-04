@@ -1,6 +1,6 @@
 # 四、白名单（谁能用）
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[下载为什么要登录（以及凭据去哪了）](03-auth.md) · 下一章：[故障排查](05-troubleshooting.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[下载为什么要登录（以及凭据去哪了）](03-auth.md) · 下一章：[故障排查](05-troubleshooting.md)
 
 
 **白名单模式，默认全关**：没有显式配置 = **群聊和私聊一个都不绑定**，任何地方都

@@ -1,6 +1,6 @@
 # 五、故障排查
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[白名单（谁能用）](04-allowlist.md) · 下一章：[代码结构](06-code-structure.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[白名单（谁能用）](04-allowlist.md) · 下一章：[代码结构](06-code-structure.md)
 
 
 | 现象 | 原因 / 处理 |

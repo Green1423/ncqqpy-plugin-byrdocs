@@ -1,6 +1,6 @@
 # 六、代码结构
 
-> 文档索引：[docs/README.md](https://github.com/Green1423/ncqqpy/blob/main/docs/README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[故障排查](05-troubleshooting.md)
+> 文档索引：[docs/README.md](README.md) · 上级：[byrdocs 插件](README.md) · 上一章：[故障排查](05-troubleshooting.md)
 
 
 | 文件 | 职责 |
