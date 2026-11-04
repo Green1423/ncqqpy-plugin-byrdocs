@@ -163,6 +163,11 @@ class FakeApi:
                 raise RuntimeError("模拟上传失败")
             self.uploads.append({"kind": "private", **dict(params or {})})
             return {"file_id": "f2"}
+        if action == "upload_group_file":
+            if self.fail_upload:
+                raise RuntimeError("模拟上传失败")
+            self.uploads.append({"kind": "group", **dict(params or {})})
+            return {"file_id": "f1"}
         return {}
 
     async def delete_msg(self, message_id):

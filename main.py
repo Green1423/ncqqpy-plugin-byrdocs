@@ -789,12 +789,12 @@ class ByrdocsPlugin(PluginBase):
         upload_name = self._safe_send_name(name, path)
         try:
             if getattr(event, "message_type", "") == "group":
-                await self.api.upload_group_file(
+                await self.files.upload_group_file(
                     group_id=str(event.group_id), file=path, name=upload_name)
                 return True
             # 好友走 C2C、非好友走 TEMPC2CFROMGROUP（群小窗正是这条）——
             # 用框架封装的 `upload_private_file` 即可，无需自己分叉。
-            await self.api.upload_private_file(
+            await self.files.upload_private_file(
                 user_id=str(event.user_id), file=path, name=upload_name)
             return True
         except Exception as e:  # noqa: BLE001 - 换一条路径再试
