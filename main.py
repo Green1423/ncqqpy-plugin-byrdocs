@@ -176,18 +176,18 @@ class ByrdocsPlugin(PluginBase):
             logger=self.logger,
         )
         self._register_commands()
-        # 技能通道是框架新加的（`napcat.skills`），**框架代码要重启进程**才生效；
-        # 热重载只换插件代码。这时不能崩 —— 命令是主功能，技能没有就只是没有。
-        if hasattr(self, "register_skill"):
+        # 重定向通道是框架新加的（`napcat.redirect`），**框架代码要重启进程**才生效；
+        # 热重载只换插件代码。这时不能崩 —— 命令是主功能，重定向没有就只是没有。
+        if hasattr(self, "register_redirect"):
             try:
-                self._register_skills()
-            except Exception as e:  # noqa: BLE001 - 技能失败不该影响插件启用
-                # 典型：进程里还是旧框架（`register_skill` 签名不同）——
-                # 技能没挂上而已，命令照旧可用；重启进程后生效
-                self.logger.warning("[byrdocs] 注册技能失败：%s", e)
+                self._register_redirects()
+            except Exception as e:  # noqa: BLE001 - 重定向失败不该影响插件启用
+                # 典型：进程里还是旧框架（`register_redirect` 签名不同）——
+                # 重定向没挂上而已，命令照旧可用；重启进程后生效
+                self.logger.warning("[byrdocs] 注册重定向失败：%s", e)
         else:
             self.logger.warning(
-                "[byrdocs] 当前进程里的框架没有 register_skill：技能暂不注册"
+                "[byrdocs] 当前进程里的框架没有 register_redirect：重定向暂不注册"
                 "（命令不受影响），重启进程后生效")
         if not self._client.has_credentials and not self._client.token:
             self.logger.warning(
@@ -364,15 +364,15 @@ class ByrdocsPlugin(PluginBase):
 
     # ------------------------------------------------------------------ 命令注册
 
-    # ------------------------------------------------------------------ 技能（给 AI 用）
-    def _register_skills(self) -> None:
-        """把「搜资料」这条**命令**挂给 ai_chat 的技能通道（见 `napcat.skills`）。
+    # ------------------------------------------------------------------ 重定向（给 AI 用）
+    def _register_redirects(self) -> None:
+        """把「搜资料」这条**命令**挂给 ai_chat 的重定向通道（见 `napcat.redirect`）。
 
-        技能 = 命令映射：参数 schema 与说明都从 `/byrdocs search` 自己取，
+        重定向 = 命令映射：参数 schema 与说明都从 `/byrdocs search` 自己取，
         触发时走 `CommandManager.handle()` —— 权限、作用域、白名单与用户手敲
-        完全一致（下载/白名单这些仍有副作用的动作只留在命令里，不做成技能）。
+        完全一致（下载/白名单这些仍有副作用的动作只留在命令里，不做成重定向）。
         """
-        self.register_skill("search", command="byrdocs.search")
+        self.register_redirect("search", command="byrdocs.search")
 
     def _register_commands(self) -> None:
         self._command_names = []
